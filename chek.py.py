@@ -23,7 +23,7 @@ class CheckState(StatesGroup):
 # --- Tugmalar ---
 def main_menu():
     return types.ReplyKeyboardMarkup(
-        keyboard=[[types.KeyboardButton(text="📱 iPhone Pro LTE Chek")]], 
+        keyboard=[[types.KeyboardButton(text="📱 Click Perfect Chek")]], 
         resize_keyboard=True
     )
 
@@ -33,9 +33,9 @@ def cancel_menu():
         resize_keyboard=True
     )
 
-# --- Maksimal aniqlikdagi LTE rasm chizish funksiyasi ---
-def create_full_pro_click_receipt(name, amount, card_num, time_str, phone_time, battery_level="88"):
-    w, h = 500, 1050
+# --- Mukammal Rasm chizish funksiyasi ---
+def create_final_click_receipt(name, amount, card_num, time_str, phone_time, battery_level="88"):
+    w, h = 500, 1000
     bg_color = (10, 10, 10)
     card_bg = (28, 28, 30)
     click_green = (100, 210, 80)
@@ -49,64 +49,62 @@ def create_full_pro_click_receipt(name, amount, card_num, time_str, phone_time, 
         f_time = ImageFont.load_default(size=18)
         f_lte = ImageFont.load_default(size=14)
         f_bat = ImageFont.load_default(size=11)
-        f_title = ImageFont.load_default(size=24)
         f_amount = ImageFont.load_default(size=52)
         f_name = ImageFont.load_default(size=21)
         f_reg = ImageFont.load_default(size=18)
+        f_bold = ImageFont.load_default(size=24)
     except:
-        f_time = f_lte = f_bat = f_title = f_amount = f_name = f_reg = ImageFont.load_default()
+        f_time = f_lte = f_bat = f_amount = f_name = f_reg = f_bold = ImageFont.load_default()
 
-    # 1. STATUS BAR (Antenna va LTE bilan)
-    draw.text((45, 22), phone_time, fill="white", font=f_time) 
-    draw.text((310, 25), "LTE", fill="white", font=f_lte)
-
-    # Antenna ustunlari
-    for i in range(4):
-        h_bars = [6, 9, 12, 15]
-        color = "white" if i < 3 else (100, 100, 100)
-        draw.rectangle([345 + (i*6), 39 - h_bars[i], 349 + (i*6), 39], fill=color)
+    # 1. STATUS BAR
+    draw.text((45, 25), phone_time, fill="white", font=f_time)
+    draw.rounded_rectangle([400, 24, 445, 42], radius=5, outline=(100, 100, 100), width=1)
+    draw.rectangle([445, 30, 448, 36], fill=(100, 100, 100))
+    draw.rounded_rectangle([402, 26, 443, 40], radius=3, fill="white")
     
-    # Batareya quvvati
-    draw.rounded_rectangle([400, 23, 445, 41], radius=5, outline=(100, 100, 100), width=1)
-    draw.rectangle([445, 29, 448, 35], fill=(100, 100, 100))
-    draw.rounded_rectangle([402, 25, 443, 39], radius=3, fill="white")
-    draw.text((412, 26), battery_level, fill="black", font=f_bat)
+    tw = draw.textlength(battery_level, font=f_bat)
+    draw.text((400 + (45-tw)/2, 27), battery_level, fill="black", font=f_bat)
+
+    for i in range(4):
+        heights = [6, 9, 12, 15]
+        color = "white" if i < 3 else (100, 100, 100)
+        draw.rectangle([365 + (i*6), 40 - heights[i], 369 + (i*6), 40], fill=color)
+
+    draw.text((330, 27), "LTE", fill="white", font=f_lte)
 
     # 2. DYNAMIC ISLAND
     draw.rounded_rectangle([180, 15, 320, 48], radius=18, fill=(0, 0, 0))
     draw.ellipse([195, 22, 215, 42], fill=click_blue)
-    draw.text((230, 24), "click", fill="white")
+    draw.text((230, 25), "click", fill="white")
 
-    # 3. ASOSIY CHEK BLOKI
+    # 3. ASOSIY CHEK
     draw.rounded_rectangle([30, 130, 470, 500], radius=30, fill=card_bg)
     draw.rounded_rectangle([200, 95, 300, 195], radius=25, fill=click_green)
     draw.line([225, 145, 245, 165, 275, 125], fill="white", width=7)
 
-    draw.text(((w - draw.textlength("O'tkazma amalga oshirildi", font=f_title)) / 2, 230), 
-              "O'tkazma amalga oshirildi", fill=click_green, font=f_title)
+    draw.text(((w - draw.textlength("O'tkazma amalga oshirildi", font=f_bold)) / 2, 230), 
+              "O'tkazma amalga oshirildi", fill=click_green, font=f_bold)
     draw.text(((w - draw.textlength(time_str, font=f_reg)) / 2, 275), time_str, fill=gray_text, font=f_reg)
 
-    # Summa
     amt_w = draw.textlength(f"{amount} ", font=f_amount)
-    total_w = amt_w + draw.textlength("so'm", font=f_name)
+    total_w = amt_w + draw.textlength("so'm", font=f_reg)
     start_x = (w - total_w) / 2
     draw.text((start_x, 320), f"{amount} ", fill="white", font=f_amount)
-    draw.text((start_x + amt_w, 345), "so'm", fill=gray_text, font=f_name)
+    draw.text((start_x + amt_w, 345), "so'm", fill=gray_text, font=f_reg)
 
     draw.line([60, 400, 440, 400], fill=(60, 60, 60), width=1)
     draw.rounded_rectangle([60, 420, 120, 480], radius=10, fill="white")
-    draw.text((75, 445), "click", fill=click_blue)
     
-    # Karta raqamini yashirish (8600 00** **** 1215)
+    # Karta raqamini formatlash
     c = card_num.replace(" ", "")
     f_card = f"{c[:4]} {c[4:6]}** **** {c[12:]}" if len(c) == 16 else card_num
 
     draw.text((140, 420), name.upper(), fill="white", font=f_name)
     draw.text((140, 450), f_card, fill=gray_text, font=f_reg)
 
-    # 4. PASTDAGI TUGMA
-    draw.rounded_rectangle([40, 930, 460, 990], radius=18, fill=click_blue)
-    draw.text(((w - draw.textlength("Tayyor", font=f_title)) / 2, 945), "Tayyor", fill="white", font=f_title)
+    # 4. TUGMA
+    draw.rounded_rectangle([40, 900, 460, 960], radius=18, fill=click_blue)
+    draw.text(((w - draw.textlength("Tayyor", font=f_name)) / 2, 915), "Tayyor", fill="white", font=f_name)
 
     buf = io.BytesIO()
     img.save(buf, format='PNG')
@@ -116,11 +114,11 @@ def create_full_pro_click_receipt(name, amount, card_num, time_str, phone_time, 
 # --- Bot Mantiqi ---
 @dp.message(Command("start"))
 async def start(m: types.Message):
-    await m.answer("iPhone Pro LTE Click botiga xush kelibsiz!", reply_markup=main_menu())
+    await m.answer("📱 Click Perfect Botga xush kelibsiz!", reply_markup=main_menu())
 
-@dp.message(F.text == "📱 iPhone Pro LTE Chek")
+@dp.message(F.text == "📱 Click Perfect Chek")
 async def step1(m: types.Message, state: FSMContext):
-    await m.answer("1. Ism familiyani kiriting (Masalan: X. SOBIR):", reply_markup=cancel_menu())
+    await m.answer("1. Ism familiyani kiriting (Masalan: X. AXMAT):", reply_markup=cancel_menu())
     await state.set_state(CheckState.name)
 
 @dp.message(F.text == "❌ Bekor qilish")
@@ -131,7 +129,7 @@ async def cancel(m: types.Message, state: FSMContext):
 @dp.message(CheckState.name)
 async def step2(m: types.Message, state: FSMContext):
     await state.update_data(name=m.text)
-    await m.answer("2. Summani kiriting (Masalan: 1 000 000):")
+    await m.answer("2. Summani kiriting (Masalan: 1 111 999):")
     await state.set_state(CheckState.amount)
 
 @dp.message(CheckState.amount)
@@ -143,23 +141,23 @@ async def step3(m: types.Message, state: FSMContext):
 @dp.message(CheckState.card)
 async def step4(m: types.Message, state: FSMContext):
     await state.update_data(card=m.text)
-    await m.answer("4. Chek ichidagi vaqt (Masalan: 20 mart 8:34):")
+    await m.answer("4. Chek ichidagi vaqt (Masalan: 20 mart 21:14):")
     await state.set_state(CheckState.check_time)
 
 @dp.message(CheckState.check_time)
 async def step5(m: types.Message, state: FSMContext):
     await state.update_data(check_time=m.text)
-    await m.answer("5. Telefon soati (Masalan: 08:34):")
+    await m.answer("5. Telefon soati (Masalan: 21:14):")
     await state.set_state(CheckState.phone_time)
 
 @dp.message(CheckState.phone_time)
 async def final(m: types.Message, state: FSMContext):
     data = await state.get_data()
-    msg = await m.answer("⏳ Pro LTE cheki tayyorlanmoqda...")
+    msg = await m.answer("⏳ Perfect chek tayyorlanmoqda...")
     try:
-        photo_buf = create_full_pro_click_receipt(data['name'], data['amount'], data['card'], data['check_time'], m.text)
-        photo = types.BufferedInputFile(photo_buf.read(), filename="click_pro_lte.png")
-        await bot.send_photo(m.chat.id, photo, caption="✅ Mukammal LTE cheki tayyor!", reply_markup=main_menu())
+        photo_buf = create_final_click_receipt(data['name'], data['amount'], data['card'], data['check_time'], m.text)
+        photo = types.BufferedInputFile(photo_buf.read(), filename="click_perfect.png")
+        await bot.send_photo(m.chat.id, photo, caption="✅ Marhamat, rasmdagidek aniq chek!", reply_markup=main_menu())
         await msg.delete()
     except Exception as e:
         await m.answer(f"Xato: {e}", reply_markup=main_menu())
