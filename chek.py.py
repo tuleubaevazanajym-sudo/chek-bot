@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 # --- SOZLAMALAR ---
 TOKEN = "8715924014:AAFIYd7b87EqVBmc1_hrg6g9_N92wrquv70"
 KANAL_ID = "@tekinsoxtachek"
-KANAL_LINK = "https://t.me/"
+KANAL_LINK = "https://t.me/soxtachektekinbot"
 ADMIN_ID = 6590911599  # Sizning ID raqamingiz
 
 bot = Bot(token=TOKEN)
