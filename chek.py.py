@@ -12,7 +12,7 @@ TOKEN = "8715924014:AAFIYd7b87EqVBmc1_hrg6g9_N92wrquv70"
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# Bot bosqichlari
+# Bot bosqichlari (FSM)
 class CheckState(StatesGroup):
     name = State()
     amount = State()
@@ -31,98 +31,109 @@ def cancel_menu():
         resize_keyboard=True
     )
 
-# --- Rasm chizish funksiyasi (Siz yuborgan kod asosida) ---
-def create_click_receipt(name, amount, time_str):
-    canvas_w, canvas_h = 500, 950
-    bg_color = (13, 13, 13)       
-    card_bg = (30, 30, 30)        
-    click_green = (103, 194, 58)  
+# --- Rasm chizish funksiyasi (Siz yuborgan V3 kod asosida) ---
+def create_click_receipt_v3(name, amount, time_str):
+    width, height = 500, 900
+    bg_color = (15, 15, 15)       
+    card_bg = (33, 33, 33)        
+    click_green = (100, 190, 60)  
     click_blue = (0, 122, 255)    
-    gray_text = (150, 150, 150)
-
-    img = Image.new('RGB', (canvas_w, canvas_h), color=bg_color)
+    
+    img = Image.new('RGB', (width, height), color=bg_color)
     draw = ImageDraw.Draw(img)
 
-    # Shriflar (Agar arial bo'lmasa, standart yuklanadi)
+    # Shriftlarni yuklash (Standard shriftlar ishlatiladi)
     try:
-        font_amount = ImageFont.load_default(size=55)
-        font_status = ImageFont.load_default(size=26)
-        font_name = ImageFont.load_default(size=22)
-        font_time = ImageFont.load_default(size=18)
+        font_main = ImageFont.load_default(size=52)
+        font_status = ImageFont.load_default(size=24)
+        font_text = ImageFont.load_default(size=20)
+        font_small = ImageFont.load_default(size=16)
     except:
-        font_amount = font_status = font_name = font_time = ImageFont.load_default()
+        font_main = font_status = font_text = font_small = ImageFont.load_default()
 
-    # 1. Asosiy box
-    draw.rounded_rectangle([30, 130, 470, 520], radius=25, fill=card_bg)
+    # 1. Asosiy blok
+    draw.rounded_rectangle([40, 120, 460, 500], radius=25, fill=card_bg)
 
-    # Yashil galochka
-    draw.rounded_rectangle([200, 80, 300, 180], radius=35, fill=click_green)
-    draw.line([225, 130, 245, 150, 275, 110], fill="white", width=8)
+    # Yashil galochka belgisi
+    draw.rounded_rectangle([205, 80, 295, 170], radius=25, fill=click_green)
+    draw.line([225, 125, 245, 145, 275, 105], fill="white", width=6)
 
-    # Matnlar
-    draw.text((120, 210), "O'tkazma amalga oshirildi", fill=click_green, font=font_status)
-    draw.text((200, 255), time_str, fill=gray_text, font=font_time)
-    draw.text((150, 310), f"{amount} so'm", fill="white", font=font_amount)
+    # Status matni
+    status = "O'tkazma amalga oshirildi"
+    w_status = draw.textlength(status, font=font_status)
+    draw.text(((width - w_status) / 2, 190), status, fill=click_green, font=font_status)
 
-    # Nuqtali chiziq
-    draw.line([60, 395, 440, 395], fill=(60, 60, 60), width=1)
+    # Vaqt
+    w_time = draw.textlength(time_str, font=font_small)
+    draw.text(((width - w_time) / 2, 230), time_str, fill=(160, 160, 160), font=font_small)
 
-    # Karta qismi
-    draw.rounded_rectangle([60, 415, 110, 465], radius=8, fill="white")
-    draw.text((65, 430), "click", fill=click_blue)
-    
-    draw.text((135, 415), name.upper(), fill="white", font=font_name)
-    draw.text((135, 445), "8600 12** **** 7647", fill=gray_text, font=font_time)
+    # Summa
+    full_amount = f"{amount} so'm"
+    w_amount = draw.textlength(full_amount, font=font_main)
+    draw.text(((width - w_amount) / 2, 280), full_amount, fill="white", font=font_main)
 
-    # Tayyor tugmasi
-    draw.rounded_rectangle([40, 830, 460, 890], radius=15, fill=click_blue)
-    draw.text((215, 845), "Tayyor", fill="white", font=font_status)
+    # Ajratuvchi chiziq
+    draw.line([70, 370, 430, 370], fill=(60, 60, 60), width=1)
 
-    # Bufga saqlash
+    # Karta ma'lumotlari
+    draw.rounded_rectangle([70, 400, 130, 460], radius=10, fill="white")
+    draw.text((78, 420), "click", fill=click_blue)
+
+    # Ism va karta raqami
+    draw.text((150, 405), name.upper(), fill="white", font=font_text)
+    draw.text((150, 435), "8600 12** **** 7647", fill=(160, 160, 160), font=font_text)
+
+    # 2. "Tayyor" tugmasi
+    draw.rounded_rectangle([40, 800, 460, 860], radius=15, fill=click_blue)
+    btn_text = "Tayyor"
+    w_btn = draw.textlength(btn_text, font=font_status)
+    draw.text(((width - w_btn) / 2, 818), btn_text, fill="white", font=font_status)
+
+    # Faylni buferga saqlash
     buf = io.BytesIO()
     img.save(buf, format='PNG')
     buf.seek(0)
     return buf
 
-# --- Bot mantiqi ---
+# --- Telegram Bot Mantiqi ---
 @dp.message(Command("start"))
 async def cmd_start(m: types.Message):
-    await m.answer("Salom! Click demo chek yaratuvchi botga xush kelibsiz.", reply_markup=main_menu())
+    await m.answer("Click V3 demo chek botiga xush kelibsiz!", reply_markup=main_menu())
 
 @dp.message(F.text == "📄 Chek yaratish")
 async def start_steps(m: types.Message, state: FSMContext):
-    await m.answer("Ism familiyani kiriting (Masalan: X. KAMOLA):", reply_markup=cancel_menu())
+    await m.answer("Ism familiyani kiriting (Masalan: X, BEGZOD):", reply_markup=cancel_menu())
     await state.set_state(CheckState.name)
 
 @dp.message(F.text == "❌ Bekor qilish")
 async def cancel(m: types.Message, state: FSMContext):
     await state.clear()
-    await m.answer("Bekor qilindi.", reply_markup=main_menu())
+    await m.answer("Jarayon bekor qilindi.", reply_markup=main_menu())
 
 @dp.message(CheckState.name)
 async def process_name(m: types.Message, state: FSMContext):
-    await state.update_data(name=m.text)
-    await m.answer("Summani kiriting (Masalan: 400 000):")
+    await state.update_data(user_name=m.text)
+    await m.answer("Summani kiriting (Masalan: 200 000):")
     await state.set_state(CheckState.amount)
 
 @dp.message(CheckState.amount)
 async def process_amount(m: types.Message, state: FSMContext):
-    await state.update_data(amount=m.text)
+    await state.update_data(user_amount=m.text)
     await m.answer("Vaqtni kiriting (Masalan: 20 mar 8:34):")
     await state.set_state(CheckState.time)
 
 @dp.message(CheckState.time)
 async def process_time(m: types.Message, state: FSMContext):
-    data = await state.get_data()
-    msg = await m.answer("⏳ Click cheki tayyorlanmoqda...", reply_markup=types.ReplyKeyboardRemove())
+    user_data = await state.get_data()
+    msg = await m.answer("⏳ Chek tayyorlanmoqda...", reply_markup=types.ReplyKeyboardRemove())
     
     try:
-        # Chekni yaratish
-        photo_buf = create_click_receipt(data['name'], data['amount'], m.text)
+        # Rasm yaratish
+        photo_buf = create_click_receipt_v3(user_data['user_name'], user_data['user_amount'], m.text)
         
         # Yuborish
-        photo = types.BufferedInputFile(photo_buf.read(), filename="click_receipt.png")
-        await bot.send_photo(m.chat.id, photo, caption="✅ Demo chek tayyor!", reply_markup=main_menu())
+        photo = types.BufferedInputFile(photo_buf.read(), filename="click_v3.png")
+        await bot.send_photo(m.chat.id, photo, caption="✅ Marhamat, demo chek tayyor!", reply_markup=main_menu())
         await msg.delete()
     except Exception as e:
         await m.answer(f"Xatolik: {e}", reply_markup=main_menu())
